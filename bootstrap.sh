@@ -5,7 +5,7 @@ set -u  # Error on undefined variables
 
 # --- Configuration ---
 DOTFILES_DIR="$HOME/dotfiles"
-REPO_URL="https://github.com/Euphorlc/dotfiles.git"
+REPO_URL="https://github.com/euphorlc/dotfiles.git"
 
 echo "[!] Starting Bootstrap..."
 

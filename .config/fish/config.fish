@@ -3,6 +3,11 @@ if status is-interactive
   set -x LANG "en_US.UTF-8"
   set -x LANGUAGE "en_US.UTF-8"
   set -x LC_ALL "en_US.UTF-8"
+
+  set -l ssh_keys (find ~/.ssh -type f -name "id_*" ! -name "*.pub")
+  if test -n "$ssh_keys"
+        keychain --eval --agents ssh $ssh_keys | source
+  end
 end
 
 # Aliases
