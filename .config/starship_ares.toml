@@ -1,0 +1,63 @@
+# ~/.config/starship_ares.toml
+
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+[┌──\\[](color_yellow)\
+$username[⊶ ](color_lightgray)$hostname\
+[\\]──\\[](color_yellow)$directory[\\]](color_yellow)\
+$fill[\\[](color_yellow)$cmd_duration[\\]](color_yellow)\
+$line_break\
+[└](color_yellow)$character
+"""
+
+palette = 'ares'
+
+[palettes.ares]
+color_darkgreen = '#072620'
+color_lightgray = '#94ADAA'
+color_darkbrown = '#380D00'
+color_yellow = '#F2B705'
+color_lightorange = '#F28705'
+color_mediumorange = '#F25C05'
+color_darkorange = '#F23005'
+color_purewhite = '#ffffff'
+
+[os]
+format = "[$type]($style)"
+style = "bold fg:color_mediumorange"
+disabled = false
+
+[username]
+show_always = true
+style_user = "bold fg:color_mediumorange"
+style_root = "bold fg:color_darkorange"
+format = "[$user]($style)"
+
+[hostname]
+format = "[$hostname](bold color_mediumorange)"
+ssh_only = false
+disabled = false
+
+[directory]
+style = "color_lightgray"
+format = "[$path]($style)"
+
+[cmd_duration]
+format = " [ $duration]($style)"
+style = "fg:color_mediumorange"
+disabled = false
+min_time = 0
+show_milliseconds = true
+
+[fill]
+symbol = ' '
+
+[character]
+disabled = false
+success_symbol = '[▸](bold fg:color_mediumorange)'
+error_symbol = '[▸](bold fg:color_darkorange)'
+vimcmd_symbol = '[◂](bold fg:color_mediumorange)'
+vimcmd_replace_one_symbol = '[◂](bold fg:color_mediumorange)'
+vimcmd_replace_symbol = '[◂](bold fg:color_mediumorange)'
+vimcmd_visual_symbol = '[◂](bold fg:color_mediumorange)'
