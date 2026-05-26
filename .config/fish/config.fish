@@ -1,19 +1,20 @@
-if status is-interactive
-  # Commands to run in interactive sessions can go here.
+# ~/.config/fish/config.fish
 
-  # Set locale.
+if status is-interactive
+  # Commands to run in interactive sessions can go here
+  # Set locale
   set -x LANG "en_US.UTF-8"
   set -x LANGUAGE "en_US.UTF-8"
   set -x LC_ALL "en_US.UTF-8"
 
-  # Add ssh keys.
+  # Add ssh keys
   set -l ssh_keys (find ~/.ssh -type f -name "id_*" ! -name "*.pub")
   if test -n "$ssh_keys"
         keychain --eval --agents ssh $ssh_keys | source
   end
 end
 
-# Aliases.
+# Aliases
 alias ls='ls -lha --color=auto'
 alias dir='dir --color=auto'
 alias vdir='vdir --color=auto'
@@ -28,16 +29,24 @@ alias _i='sudo -i'
 alias fucking='sudo'
 alias please='sudo'
 
-# Color variables.
-set -U fish_color_command blue
-set -U fish_color_end brcyan
-set -U fish_color_error brwhite
-set -U fish_color_escape red
-set -U fish_color_operator red
-set -U fish_color_param brmagenta
-set -U fish_color_quote green
-set -U fish_color_quotes green
-set -U fish_color_redirection red
+# OS-specific theme and starship routing
+if test -f /etc/os-release
+    # Kali linux (PenTest)
+    if grep -qi "kali" /etc/os-release
+        source ~/.config/fish/theme_ares.fish
+        set -gx STARSHIP_CONFIG ~/.config/starship_ares.toml
 
-fnm env --use-on-cd | source
+    # Ubuntu (Dev)
+    else if grep -qi "ubuntu" /etc/os-release
+        source ~/.config/fish/theme_hephaestus.fish
+        set -gx STARSHIP_CONFIG ~/.config/starship_hephaestus.toml
+    end
+end
+
 starship init fish | source
+
+if status is-interactive
+    and test -z "$TMUX"
+    and test "$TERM_PROGRAM" != "vscode"
+    exec tmux new-session -A -s main
+end
