@@ -1,4 +1,4 @@
-# ~/.config/fish/theme_kali.fish
+# ~/.config/fish/theme_mars.fish
 
 # Primary command styling
 set -g fish_color_normal normal
