@@ -1,4 +1,4 @@
-# ~/.config/fish/theme_hephaestus.fish
+# ~/.config/fish/theme_vulcan.fish
 
 # Primary syntax highlighting
 set -g fish_color_normal normal
