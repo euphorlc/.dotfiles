@@ -29,18 +29,18 @@ alias _i='sudo -i'
 alias fucking='sudo'
 alias please='sudo'
 
-# ─── OS-specific theme, Starship, and Alacritty profile ───────────────────────
-if test -f /etc/os-release
-    # Kali Linux - Ares (PenTest)
-    if grep -qi "kali" /etc/os-release
-        source ~/.config/fish/theme_ares.fish
-        set -gx STARSHIP_CONFIG ~/.config/starship_ares.toml
+# ─── Workspace-specific theme routing for Starship and Fish ───────────────────────
+switch "$WORKSPACE_THEME"
+    case "mars"
+        set -gx STARSHIP_CONFIG ~/.config/starship_mars.toml
+        source ~/.config/fish/theme_mars.fish
 
-    # Ubuntu - Hephaestus (Dev)
-    else if grep -qi "ubuntu" /etc/os-release
-        source ~/.config/fish/theme_hephaestus.fish
-        set -gx STARSHIP_CONFIG ~/.config/starship_hephaestus.toml
-    end
+    case "vulcan"
+        set -gx STARSHIP_CONFIG ~/.config/starship_vulcan.toml
+        source ~/.config/fish/theme_vulcan.fish
+
+    case "*"
+        set -gx STARSHIP_CONFIG ~/.config/starship.toml
 end
 
 starship init fish | source
