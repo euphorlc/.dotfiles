@@ -49,5 +49,8 @@ starship init fish | source
 if status is-interactive
     and test -z "$TMUX"
     and test "$TERM_PROGRAM" != "vscode"
+    if test -n "$WORKSPACE_THEME"
+        set -gx TMUX_TMPDIR "/tmp/tmux-$WORKSPACE_THEME"
+    end
     exec tmux new-session -A -s main
 end
