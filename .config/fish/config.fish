@@ -46,11 +46,12 @@ end
 starship init fish | source
 
 # ─── Auto-attach to tmux (skip inside VSCode or existing tmux session) ────────
-if status is-interactive
-    and test -z "$TMUX"
-    and test "$TERM_PROGRAM" != "vscode"
-    if test -n "$WORKSPACE_THEME"
-        set -gx TMUX_TMPDIR "/tmp/tmux-$WORKSPACE_THEME"
-    end
-    exec tmux new-session -A -s main
-end
+ if status is-interactive
+     and test -z "$TMUX"
+     and test "$TERM_PROGRAM" != "vscode"
+     and test -n "$CONTAINER_ID"
+     if test -n "$WORKSPACE_THEME"
+         set -gx TMUX_TMPDIR "/tmp/tmux-$WORKSPACE_THEME"
+     end
+     exec tmux new-session -A -s main
+ end
