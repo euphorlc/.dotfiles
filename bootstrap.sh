@@ -91,8 +91,8 @@ distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name mars \
     --home "$MARS_HOME" \
-    --additional-flags "--tmpfs /tmp" \
-    --additional-packages "git fish tmux stow nmap python3-pip" \
+    --volume /tmp:/tmp:rw \
+    --additional-packages "git,fish,tmux,stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
 print_status "Creating Vulcan container (development environment)..."
@@ -100,8 +100,8 @@ distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name vulcan \
     --home "$VULCAN_HOME" \
-    --additional-flags "--tmpfs /tmp" \
-    --additional-packages "git fish tmux stow gcc gcc-c++ make python3-devel" \
+    --volume /tmp:/tmp:rw \
+    --additional-packages "git,fish,tmux,stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
 # ─── Step 9: Post-Setup Instructions ──────────────────────────────────────
@@ -117,8 +117,9 @@ echo ""
 echo "Your dotfiles are symlinked and will update automatically"
 echo "when you make changes to the repository."
 echo ""
-echo "Each container has its own isolated /tmp directory,"
-echo "so tmux sessions will NOT conflict between environments."
+echo "Note: You can manually install additional tools inside each container:"
+echo "  ${BLUE}distrobox enter mars${NC}  # Then: sudo dnf install nmap python3-pip ..."
+echo "  ${BLUE}distrobox enter vulcan${NC} # Then: sudo dnf install gcc gcc-c++ make python3-devel ..."
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
