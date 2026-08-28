@@ -64,22 +64,23 @@ fi
 print_status "Removing existing containers (if any)..."
 distrobox rm -f mars vulcan 2>/dev/null || true
 
-# ─── Step 9: Create Containers with Private /tmp ──────────────────────────
-print_status "Creating Mars container (private /tmp)..."
+# ─── Step 9: Create Containers with TMUX_TMPDIR set to a home subdirectory ──
+# No attempts to mount /tmp – we isolate tmux via TMUX_TMPDIR inside the container's home.
+print_status "Creating Mars container (tmux sockets in ~/.tmux-sockets)..."
 distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name mars \
     --home "$MARS_HOME" \
-    --additional-flags "--mount type=tmpfs,destination=/tmp,tmpfs-size=2G" \
+    --additional-flags "--env TMUX_TMPDIR=/home/$(whoami)/.tmux-sockets" \
     --additional-packages "git fish tmux stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
-print_status "Creating Vulcan container (private /tmp)..."
+print_status "Creating Vulcan container (tmux sockets in ~/.tmux-sockets)..."
 distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name vulcan \
     --home "$VULCAN_HOME" \
-    --additional-flags "--mount type=tmpfs,destination=/tmp,tmpfs-size=2G" \
+    --additional-flags "--env TMUX_TMPDIR=/home/$(whoami)/.tmux-sockets" \
     --additional-packages "git fish tmux stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
@@ -91,5 +92,6 @@ echo "  Enter environments:"
 echo "    distrobox enter mars"
 echo "    distrobox enter vulcan"
 echo ""
-echo "  Each container has its own isolated /tmp → tmux sessions are fully separate."
-echo "  Install extra tools manually inside each container."
+echo "  Tmux sockets are stored in ~/.tmux-sockets inside each container."
+echo "  Because each container has its own isolated home, these are separate."
+echo ""
