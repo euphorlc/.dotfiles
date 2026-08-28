@@ -81,14 +81,14 @@ if ! command -v distrobox >/dev/null 2>&1; then
 fi
 
 # ─── Step 8: Create Distrobox Containers ──────────────────────────────────
-# Note: We use TMUX_TMPDIR to isolate sockets instead of fighting /tmp mounts
+# Note: For Distrobox < 1.9, use --additional-flags for environment variables
 print_status "Creating Mars container (penetration testing environment)..."
 distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name mars \
     --home "$MARS_HOME" \
-    --env TMUX_TMPDIR=/tmp/mars-tmux \
-    --additional-packages "git,fish,tmux,stow" \
+    --additional-flags "--env TMUX_TMPDIR=/tmp/mars-tmux" \
+    --additional-packages "git fish tmux stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
 print_status "Creating Vulcan container (development environment)..."
@@ -96,8 +96,8 @@ distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name vulcan \
     --home "$VULCAN_HOME" \
-    --env TMUX_TMPDIR=/tmp/vulcan-tmux \
-    --additional-packages "git,fish,tmux,stow" \
+    --additional-flags "--env TMUX_TMPDIR=/tmp/vulcan-tmux" \
+    --additional-packages "git fish tmux stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
 # ─── Step 9: Post-Setup Instructions ──────────────────────────────────────
