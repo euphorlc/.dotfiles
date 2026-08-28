@@ -43,7 +43,6 @@ if [[ ! -d "$DOTFILES_DIR" ]]; then
     git clone "$REPO_URL" "$DOTFILES_DIR"
 else
     print_status "Dotfiles directory found at $DOTFILES_DIR."
-    # Optionally pull latest changes
     if [[ -d "$DOTFILES_DIR/.git" ]]; then
         print_status "Pulling latest changes..."
         git -C "$DOTFILES_DIR" pull --rebase
@@ -52,7 +51,7 @@ fi
 
 cd "$DOTFILES_DIR"
 
-# ─── Step 3: Stow to Host (Optional) ──────────────────────────────────────
+# ─── Step 3: Stow to Host ──────────────────────────────────────────────────
 print_status "Stowing dotfiles to host home directory..."
 stow .
 
@@ -75,23 +74,20 @@ echo "vulcan" > "$VULCAN_HOME/.env"
 # ─── Step 7: Check for Distrobox ──────────────────────────────────────────
 if ! command -v distrobox >/dev/null 2>&1; then
     print_warning "Distrobox is not installed on this host."
-    echo "Please install Distrobox to create the container environments."
     echo "Container homes have been prepared at:"
     echo "  - $MARS_HOME"
     echo "  - $VULCAN_HOME"
-    echo "You can manually create containers later with:"
-    echo "  distrobox create --image fedora:41 --name mars --home $MARS_HOME --additional-flags '--tmpfs /tmp'"
-    echo "  distrobox create --image fedora:41 --name vulcan --home $VULCAN_HOME --additional-flags '--tmpfs /tmp'"
     exit 0
 fi
 
 # ─── Step 8: Create Distrobox Containers ──────────────────────────────────
+# Note: We use TMUX_TMPDIR to isolate sockets instead of fighting /tmp mounts
 print_status "Creating Mars container (penetration testing environment)..."
 distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name mars \
     --home "$MARS_HOME" \
-    --volume /tmp:/tmp:rw \
+    --env TMUX_TMPDIR=/tmp/mars-tmux \
     --additional-packages "git,fish,tmux,stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
@@ -100,7 +96,7 @@ distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name vulcan \
     --home "$VULCAN_HOME" \
-    --volume /tmp:/tmp:rw \
+    --env TMUX_TMPDIR=/tmp/vulcan-tmux \
     --additional-packages "git,fish,tmux,stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
@@ -111,18 +107,15 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "To enter your environments:"
-echo "  ${GREEN}distrobox enter mars${NC}     # Penetration testing environment"
-echo "  ${GREEN}distrobox enter vulcan${NC}   # Development environment"
+echo "  ${GREEN}distrobox enter mars${NC}     # Penetration testing"
+echo "  ${GREEN}distrobox enter vulcan${NC}   # Development"
 echo ""
-echo "Your dotfiles are symlinked and will update automatically"
-echo "when you make changes to the repository."
+echo "Tmux sessions are isolated via TMUX_TMPDIR:"
+echo "  Mars uses   : /tmp/mars-tmux"
+echo "  Vulcan uses : /tmp/vulcan-tmux"
 echo ""
-echo "Note: You can manually install additional tools inside each container:"
-echo "  ${BLUE}distrobox enter mars${NC}  # Then: sudo dnf install nmap python3-pip ..."
-echo "  ${BLUE}distrobox enter vulcan${NC} # Then: sudo dnf install gcc gcc-c++ make python3-devel ..."
+echo "Install additional tools manually inside each container:"
+echo "  ${BLUE}distrobox enter mars${NC}  → sudo dnf install nmap python3-pip ..."
+echo "  ${BLUE}distrobox enter vulcan${NC} → sudo dnf install gcc gcc-c++ make ..."
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "To manually rebuild containers after updates:"
-echo "  distrobox rm mars vulcan"
-echo "  ./bootstrap.sh"
