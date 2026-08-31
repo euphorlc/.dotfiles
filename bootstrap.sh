@@ -17,7 +17,6 @@ NC='\033[0m'
 print_status() { echo -e "${GREEN}[*]${NC} $1"; }
 print_warning() { echo -e "${YELLOW}[!]${NC} $1"; }
 print_error() { echo -e "${RED}[x]${NC} $1" >&2; }
-print_info() { echo -e "${BLUE}[i]${NC} $1"; }
 
 # ─── Step 1: Check for Stow ────────────────────────────────────────────────
 if ! command -v stow >/dev/null 2>&1; then
@@ -64,23 +63,22 @@ fi
 print_status "Removing existing containers (if any)..."
 distrobox rm -f mars vulcan 2>/dev/null || true
 
-# ─── Step 9: Create Containers with TMUX_TMPDIR set to a home subdirectory ──
-# No attempts to mount /tmp – we isolate tmux via TMUX_TMPDIR inside the container's home.
-print_status "Creating Mars container (tmux sockets in ~/.tmux-sockets)..."
+# ─── Step 9: Create Containers with Unique TMUX_TMPDIR ────────────────────
+print_status "Creating Mars container (tmux socket: /tmp/mars-tmux)..."
 distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name mars \
     --home "$MARS_HOME" \
-    --additional-flags "--env TMUX_TMPDIR=/home/$(whoami)/.tmux-sockets" \
+    --additional-flags "--env TMUX_TMPDIR=/tmp/mars-tmux" \
     --additional-packages "git fish tmux stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
-print_status "Creating Vulcan container (tmux sockets in ~/.tmux-sockets)..."
+print_status "Creating Vulcan container (tmux socket: /tmp/vulcan-tmux)..."
 distrobox create \
     --image registry.fedoraproject.org/fedora:41 \
     --name vulcan \
     --home "$VULCAN_HOME" \
-    --additional-flags "--env TMUX_TMPDIR=/home/$(whoami)/.tmux-sockets" \
+    --additional-flags "--env TMUX_TMPDIR=/tmp/vulcan-tmux" \
     --additional-packages "git fish tmux stow" \
     --init-hooks "curl -sS https://starship.rs/install.sh | sh -s -- -y; chsh -s /usr/bin/fish"
 
@@ -92,6 +90,8 @@ echo "  Enter environments:"
 echo "    distrobox enter mars"
 echo "    distrobox enter vulcan"
 echo ""
-echo "  Tmux sockets are stored in ~/.tmux-sockets inside each container."
-echo "  Because each container has its own isolated home, these are separate."
+echo "  Tmux sockets are isolated via TMUX_TMPDIR:"
+echo "    Mars uses   : /tmp/mars-tmux"
+echo "    Vulcan uses : /tmp/vulcan-tmux"
 echo ""
+echo "  No mount conflicts, no shared /tmp issues!"

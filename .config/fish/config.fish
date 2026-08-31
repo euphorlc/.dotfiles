@@ -1,21 +1,28 @@
 # ~/.config/fish/config.fish
 
 if status is-interactive
-  # Commands to run in interactive sessions can go here
   # Set locale
   set -x LANG "en_US.UTF-8"
   set -x LANGUAGE "en_US.UTF-8"
   set -x LC_ALL "en_US.UTF-8"
 
   # ─── Environment Detection ─────────────────────────────────────────────────────
-  # Read environment type from .env file (written by bootstrap.sh)
-  # Falls back to WORKSPACE_THEME if .env doesn't exist (for manual setups)
+  # Read environment type from .env file
   if test -f ~/.env
       set -gx WORKSPACE_THEME (cat ~/.env | string trim)
   else if not set -q WORKSPACE_THEME
-      # Fallback to "vulcan" if nothing is set
       set -gx WORKSPACE_THEME "vulcan"
   end
+
+  # ─── TMUX Socket Isolation ────────────────────────────────────────────────────
+  # Set unique TMUX_TMPDIR per environment to isolate sockets
+  switch "$WORKSPACE_THEME"
+      case "mars"
+          set -gx TMUX_TMPDIR "/tmp/mars-tmux"
+      case "vulcan"
+          set -gx TMUX_TMPDIR "/tmp/vulcan-tmux"
+  end
+  mkdir -p "$TMUX_TMPDIR" 2>/dev/null
 
   # Add SSH keys via keychain
   set -l ssh_keys (find ~/.ssh -type f -name "id_*" ! -name "*.pub")
