@@ -7,22 +7,30 @@ if status is-interactive
   set -x LC_ALL "en_US.UTF-8"
 
   # ─── Environment Detection ─────────────────────────────────────────────────────
-  # Read environment type from .env file
-  if test -f ~/.env
+  # Detect environment based on TMUX_TMPDIR (set by distrobox)
+  if set -q TMUX_TMPDIR
+      switch "$TMUX_TMPDIR"
+          case "/tmp/mars-tmux"
+              set -gx WORKSPACE_THEME "mars"
+          case "/tmp/vulcan-tmux"
+              set -gx WORKSPACE_THEME "vulcan"
+      end
+  end
+
+  # Fallback: try reading .env file (for non-distrobox usage)
+  if not set -q WORKSPACE_THEME; and test -f ~/.env
       set -gx WORKSPACE_THEME (cat ~/.env | string trim)
-  else if not set -q WORKSPACE_THEME
+  end
+
+  # Final fallback
+  if not set -q WORKSPACE_THEME
       set -gx WORKSPACE_THEME "vulcan"
   end
 
-  # ─── TMUX Socket Isolation ────────────────────────────────────────────────────
-  # Set unique TMUX_TMPDIR per environment to isolate sockets
-  switch "$WORKSPACE_THEME"
-      case "mars"
-          set -gx TMUX_TMPDIR "/tmp/mars-tmux"
-      case "vulcan"
-          set -gx TMUX_TMPDIR "/tmp/vulcan-tmux"
+  # ─── Ensure TMUX_TMPDIR exists ──────────────────────────────────────────────
+  if set -q TMUX_TMPDIR
+      mkdir -p "$TMUX_TMPDIR" 2>/dev/null
   end
-  mkdir -p "$TMUX_TMPDIR" 2>/dev/null
 
   # Add SSH keys via keychain
   set -l ssh_keys (find ~/.ssh -type f -name "id_*" ! -name "*.pub")
@@ -66,5 +74,6 @@ starship init fish | source
 if status is-interactive
     and test -z "$TMUX"
     and test "$TERM_PROGRAM" != "vscode"
+    and command -v tmux >/dev/null 2>&1
     exec tmux new-session -A -s main
 end
