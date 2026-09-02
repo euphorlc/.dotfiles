@@ -5,6 +5,7 @@ if status is-interactive
   set -x LANG "en_US.UTF-8"
   set -x LANGUAGE "en_US.UTF-8"
   set -x LC_ALL "en_US.UTF-8"
+  set -gx COLORTERM truecolor
 
   # ─── Environment Detection ─────────────────────────────────────────────────────
   # Detect environment based on TMUX_TMPDIR (set by distrobox)
