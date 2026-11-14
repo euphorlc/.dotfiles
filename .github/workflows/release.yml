@@ -1,0 +1,77 @@
+name: Acheron binaries
+on:
+  push:
+    branches: [feat/acheron-workspace-deployment]
+    tags: [acheron-v*]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: binaries-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Build portable binary
+        working-directory: acheron
+        run: cargo build --release --locked --target '${{ matrix.target }}'
+      - name: Package and verify
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir -p dist
+          install -m 0755 "acheron/target/$TARGET/release/acheron" dist/acheron
+          cp LICENSE dist/LICENSE
+          dist/acheron --version
+          tar -C dist -czf "dist/acheron-$TARGET.tar.gz" acheron LICENSE
+          cd dist
+          sha256sum "acheron-$TARGET.tar.gz" > "acheron-$TARGET.tar.gz.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: acheron-${{ matrix.target }}
+          path: |
+            dist/*.tar.gz
+            dist/*.sha256
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            release_tag="$GITHUB_REF_NAME"
+            if ! gh release view "$release_tag" >/dev/null 2>&1; then
+              gh release create "$release_tag" --verify-tag --title "Acheron $release_tag" --generate-notes
+            fi
+          else
+            release_tag=acheron-preview
+            if ! gh release view "$release_tag" >/dev/null 2>&1; then
+              gh release create "$release_tag" --target "$BUILD_SHA" --prerelease --title 'Acheron preview' --notes "Branch build $BUILD_SHA. See README for host testing."
+            fi
+            gh release edit "$release_tag" --notes "Branch build $BUILD_SHA. See README for host testing."
+          fi
+          gh release upload "$release_tag" dist/* --clobber

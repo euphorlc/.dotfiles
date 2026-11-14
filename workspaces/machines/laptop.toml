@@ -1,0 +1,11 @@
+# Full entries override matching defaults; other defaults remain.
+version = 1
+
+[[workspace]]
+name = "rust-dev"
+image = "ghcr.io/euphorlc/acheron-dev:preview"
+theme = "vulcan"
+
+[[workspace.mounts]]
+source = "~/Projects"
+target = "/workspace/projects"

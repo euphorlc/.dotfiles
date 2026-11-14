@@ -1,0 +1,25 @@
+name: Checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: acheron
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: sudo apt-get update && sudo apt-get install -y stow fish tmux shellcheck
+      - run: cargo fmt --check
+      - run: cargo test --locked
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo run --locked -- --repo "$GITHUB_WORKSPACE" plan --offline
+      - run: fish --no-config --no-execute ../stow/terminal/.config/fish/config.fish
+      - run: bash -n ../bootstrap.sh ../scripts/*.sh
+      - run: shellcheck ../bootstrap.sh ../scripts/*.sh

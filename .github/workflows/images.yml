@@ -1,0 +1,56 @@
+name: Workspace images
+on:
+  push:
+    branches: [main, feat/acheron-workspace-deployment]
+    paths: [images/**, .github/workflows/images.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+concurrency:
+  group: images-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Select channel
+        id: channel
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_NAME" == main ]]; then
+            echo 'tag=latest' >> "$GITHUB_OUTPUT"
+          else
+            echo 'tag=preview' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Build base
+        id: base
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: images/base/Containerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/acheron-base:${{ steps.channel.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/acheron-base:sha-${{ github.sha }}
+          cache-from: type=gha,scope=base
+          cache-to: type=gha,mode=max,scope=base
+      - name: Build development image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: images/dev/Containerfile
+          build-args: BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/acheron-base@${{ steps.base.outputs.digest }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/acheron-dev:${{ steps.channel.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/acheron-dev:sha-${{ github.sha }}
+          cache-from: type=gha,scope=dev
+          cache-to: type=gha,mode=max,scope=dev

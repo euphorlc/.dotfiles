@@ -1,0 +1,6 @@
+version = 1
+
+[[workspace]]
+name = "experiments"
+image = "ghcr.io/euphorlc/acheron-base:preview"
+theme = "vulcan"

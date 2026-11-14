@@ -27,3 +27,9 @@ _darcs
 venv
 
 ^/bootstrap.sh
+^/acheron
+^/stow
+^/workspaces
+^/images
+^/scripts
+^/\.github

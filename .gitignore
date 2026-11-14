@@ -1,4 +1,6 @@
 .config/fish/fish_variables
+stow/terminal/.config/fish/fish_variables
+**/target/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

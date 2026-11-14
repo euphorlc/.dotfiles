@@ -1,0 +1,11 @@
+# Git-backed desired state. Replace image tags with @sha256 digests for pinning.
+version = 1
+
+[[workspace]]
+name = "rust-dev"
+image = "ghcr.io/euphorlc/acheron-dev:preview"
+theme = "mars"
+
+[[workspace.mounts]]
+source = "~/Projects"
+target = "/workspace/projects"

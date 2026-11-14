@@ -1,0 +1,4 @@
+Acheron reads ~/.dotfiles/workspaces/default.toml by default.
+Use --repo PATH or ACHERON_REPO to select another checkout.
+Use --profile laptop or --profile desktop for a machine overlay.
+Generated state lives under ~/.local/state/acheron, never in this directory.

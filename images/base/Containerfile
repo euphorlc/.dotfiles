@@ -1,0 +1,18 @@
+# Build Starship once in CI rather than executing installers on every start.
+FROM docker.io/library/rust:1.100.0-slim AS starship
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev cmake \
+    && rm -rf /var/lib/apt/lists/*
+RUN cargo install starship --version 1.26.0 --locked --root /opt/starship
+
+FROM registry.fedoraproject.org/fedora:44
+LABEL org.opencontainers.image.source="https://github.com/euphorlc/.dotfiles"
+RUN dnf -y install fish git tmux stow curl keychain ncurses-term openssl-libs \
+    && dnf clean all
+COPY --from=starship /opt/starship/bin/starship /usr/local/bin/starship
+RUN mkdir -p /usr/local/share/acheron/tmux/plugins \
+    && git clone --depth 1 https://github.com/tmux-plugins/tpm /usr/local/share/acheron/tmux/plugins/tpm \
+    && git clone --depth 1 https://github.com/tmux-plugins/tmux-sensible /usr/local/share/acheron/tmux/plugins/tmux-sensible \
+    && git clone --depth 1 https://github.com/tmux-plugins/tmux-resurrect /usr/local/share/acheron/tmux/plugins/tmux-resurrect \
+    && git clone --depth 1 https://github.com/tmux-plugins/tmux-continuum /usr/local/share/acheron/tmux/plugins/tmux-continuum \
+    && git clone --depth 1 https://github.com/christoomey/vim-tmux-navigator /usr/local/share/acheron/tmux/plugins/vim-tmux-navigator \
+    && starship --version && fish --version && tmux -V
